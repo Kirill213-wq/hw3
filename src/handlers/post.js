@@ -2,7 +2,7 @@ export class PostHandler {
   constructor(postService) {
     this.postService = postService;
   }
-
+//fsf
   getPosts = async (req, res) => {
     try {
       const { category, take } = req.query;
