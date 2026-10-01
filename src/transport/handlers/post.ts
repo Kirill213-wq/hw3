@@ -1,54 +1,58 @@
-import type { PostService } from "../../services/post.js";
+import type { Request, Response } from "express";
+import type { Service } from "../../services/post.types.js";
+import type {
+  Post,
+  CreatePostDto,
+  PostsQueryDto,
+  PostParamsDto,
+  ErrorDto,
+} from "../../dto/post.dto.js";
 
-export class PostHandler {
-  postService: PostService;
-  constructor(postService: PostService) {
-    this.postService = postService;
-  }
 //fsf
-  getPosts = async (req: { query: { category: any; take: any; }; }, res: { status: (arg0: number) => { (): any; new(): any; json: { (arg0: { error: string; }): any; new(): any; }; }; }) => {
-    try {
-      const { category, take } = req.query;
-      const posts = await this.postService.getPosts(category, take);
-      return res.status(200).json(posts);
-    } catch (error) {
-      return res.status(500).json({ error: 'Internal Server Error' });
+export function createPostHandlers(postService: Service) {  
+  return {
+     async getPosts(req: Request, res: Response){
+  try {
+    const posts = await postService.getPosts();
+    return res.status(200).json(posts);
+  } catch (error) {
+    return res.status(500).json({ error: 'Internal Server Error' });
+  }
+},
+async getPostById (req: Request, res: Response){
+  try {
+    const { id } = req.params;
+    const post = await postService.getPostById(Number(id));
+
+    if (!post) {
+      return res.status(404).json({ error: 'Post not found' });
     }
-  };
 
-  getPostById = async (req: { params: { id: any; }; }, res: { status: (arg0: number) => { (): any; new(): any; json: { (arg0: { error: string; }): any; new(): any; }; }; }) => {
-    try {
-      const { id } = req.params;
-      const post = await this.postService.getPostById(id);
+    return res.status(200).json(post);
+  } catch (error) {
+    return res.status(500).json({ error: 'Internal Server Error' });
+  }
+},
 
-      if (!post) {
-        return res.status(404).json({ error: 'Post not found' });
-      }
+ async createPost(req: Request, res: Response<any>){
+  try {
+    const { title, content, author, category } = req.body;
 
-      return res.status(200).json(post);
-    } catch (error) {
-      return res.status(500).json({ error: 'Internal Server Error' });
+    if (!title || !content) {
+      return res.status(422).json({ error: 'Title and content are required' });
     }
-  };
 
-  createPost = async (req: { body: { title: any; content: any; author: any; category: any; }; }, res: { status: (arg0: number) => { (): any; new(): any; json: { (arg0: { error: string; }): any; new(): any; }; }; }) => {
-    try {
-      const { title, content, author, category } = req.body;
+    const newPost = await postService.createPost({
+      title,
+      content,
+      author: author || 'Anonymous',
+      category: category || 'general',
+    });
 
-      if (!title || !content) {
-        return res.status(422).json({ error: 'Title and content are required' });
-      }
-
-      const newPost = await this.postService.createPost({
-        title,
-        content,
-        author: author || 'Anonymous',
-        category: category || 'general'
-      });
-
-      return res.status(201).json(newPost);
-    } catch (error) {
-      return res.status(500).json({ error: 'Internal Server Error' });
-    }
-  };
+    return res.status(201).json(newPost); 
+  } catch (error) {
+    return res.status(500).json({ error: 'Internal Server Error' });
+  }
+}
+}
 }

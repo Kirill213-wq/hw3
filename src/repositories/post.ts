@@ -1,4 +1,9 @@
-import { type Post, type CreatePostDto } from '../dto/post.dto.js';
+import type {CreatePostDto} from '../dto/post.dto.js';
+import type {Post} from '../domain/post/entity.ts';
+import type { Repository } from '../domain/post/repository.js';
+
+
+
 
 const posts = [
   { id: 1, title: 'First Post', content: 'Hello World', author: 'Kirill', category: 'general' },
@@ -7,7 +12,10 @@ const posts = [
   { id: 4, title: 'Node.js Basics', content: 'Introduction to Node.js', author: 'John', category: 'programming' }
 ];
 
-export class PostRepository {
+export function creeatePostRepository(): Repository{
+  return{
+
+  
   async getAll(category: string, take: number) {
     let result = [...posts];
 
@@ -21,12 +29,12 @@ export class PostRepository {
     }
 
     return result;
-  }
+  },
 
   async getById(id: number) {
     const numericId = Number(id);
     return posts.find((post) => post.id === numericId) || null;
-  }
+  },
 
 async addPost({ title, content, author, category }: CreatePostDto): Promise<Post> {
     const newPost: Post = {
@@ -40,4 +48,5 @@ async addPost({ title, content, author, category }: CreatePostDto): Promise<Post
     posts.push(newPost);
     return newPost;
   }
+ }
 }
