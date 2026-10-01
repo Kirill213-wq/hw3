@@ -1,18 +1,21 @@
-export class PostService {
-  postRepository: any;
-  constructor(postRepository: any) {
-    this.postRepository = postRepository;
-  }
+import type { Repository } from "../domain/post/repository.js";
+import type { NewPost } from "../domain/post/entity.js";
+import type { Service } from "./post.types.js";
 
-  async getPosts(category: any, take: any) {
-    return await this.postRepository.getAll(category, take);
-  }
+export function createPostService(
+  postRepository: Repository,
+): Service {
+  return {
+    async getPosts(category?: string, take?: number) {
+      return await postRepository.getAll(category, take);
+    },
 
-  async getPostById(id: any) {
-    return await this.postRepository.getById(id);
-  }
+    async getPostById(id: number) {
+      return await postRepository.getById(id);
+    },
 
-  async createPost(data: { title: any; content: any; author: any; category: any; }) {
-    return await this.postRepository.addPost(data);
-  }
+    async createPost(data: NewPost) {
+      return await postRepository.addPost(data);
+    },
+  };
 }
