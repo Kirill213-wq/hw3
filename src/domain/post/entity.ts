@@ -1,9 +1,12 @@
-export interface Post{
-    id: number;
-    title: string
-    content: string;
-    author: string;
-    category: string;
+import type { Category } from "../category/entity.js";
+
+export interface Post {
+  id: number;
+  title: string;
+  content: string;
+  author: string;
+  categoryId: number;
+  category: Category;
 }
 
-export type NewPost = Omit<Post, "id">
+export type NewPost = Omit<Post, "id" | "category">;

@@ -6,7 +6,7 @@ export interface CreatePostDto {
   title: string;
   content: string;
   author: string;
-  category: string;
+  categoryId: number;
 }
 
 export interface PostsQueryDto {
