@@ -46,7 +46,7 @@ async getPostById (req: Request, res: Response){
       title,
       content,
       author: author || 'Anonymous',
-      category: category || 'general',
+      categoryId: category || 'general',
     });
 
     return res.status(201).json(newPost); 

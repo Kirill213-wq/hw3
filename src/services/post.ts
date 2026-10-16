@@ -3,7 +3,7 @@ import type { NewPost } from "../domain/post/entity.js";
 import type { Service } from "./post.types.js";
 
 export function createPostService(
-  postRepository: Repository,
+postRepository: Repository, categoryRepository: any,
 ): Service {
   return {
     async getPosts(category?: string, take?: number) {

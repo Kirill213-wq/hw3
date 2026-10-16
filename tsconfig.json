@@ -1,4 +1,7 @@
 {
+
+  "include": ["src/**/*.ts"],
+  "exclude": ["node_modules", "my-react-app", "my-react-app-git-backup"],
   // Visit https://aka.ms/tsconfig to read more about this file
   "compilerOptions": {
     // File Layout
