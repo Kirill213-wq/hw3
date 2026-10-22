@@ -34,25 +34,28 @@ async getPostById (req: Request, res: Response){
   }
 },
 
- async createPost(req: Request, res: Response<any>){
+ async createPost(req: Request<{}, {}, CreatePostDto>, res: Response) {
   try {
-    const { title, content, author, category } = req.body;
+    const { title, content, authorId, categoryId } = req.body ?? {};
 
-    if (!title || !content) {
-      return res.status(422).json({ error: 'Title and content are required' });
+    if (
+      typeof title !== "string" || !title.trim() ||
+      typeof content !== "string" || !content.trim() ||
+      !Number.isSafeInteger(authorId) || authorId <= 0 ||
+      !Number.isSafeInteger(categoryId) || categoryId <= 0
+    ) {
+      return res.status(422).json({ error: "Invalid post data" });
     }
 
     const newPost = await postService.createPost({
       title,
       content,
-      author: author || 'Anonymous',
-      categoryId: category || 'general',
+      authorId,
+      categoryId,
     });
 
-    return res.status(201).json(newPost); 
+    return res.status(201).json(newPost);
   } catch (error) {
-    return res.status(500).json({ error: 'Internal Server Error' });
+    return res.status(500).json({ error: "Internal Server Error" });
   }
-}
-}
-}
+}}}
