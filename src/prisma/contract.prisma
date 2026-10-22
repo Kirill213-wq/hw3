@@ -4,9 +4,11 @@ model Post {
   id         Int      @id @default(autoincrement())
   title      String
   content    String
-  author     String
+  author     User?    @relation(fields: [authorId], references: [id])
+  authorId   Int?
   categoryId Int
   category   Category @relation(fields: [categoryId], references: [id])
+  legacyAuthor String @map("author") @default("Anonymous")
 }
 
 
@@ -18,3 +20,9 @@ model Category {
   posts Post[]
 }
 
+model User {
+  id        Int    @id @default(autoincrement())
+  email     String @unique
+  password  String
+  posts Post[]
+}

@@ -1,6 +1,8 @@
 import type { Post, NewPost } from "./entity.js";
 
 export interface Repository {
+  [x: string]: any;
+  getByEmail(email: string): unknown;
   getAll(
     category?: string,
     take?: number,

@@ -1,82 +1,65 @@
+import type { CreatePostDto } from "../dto/post.dto.js";
+import type { NewPost, Post } from "../domain/post/entity.js";
+import type { Repository } from "../domain/post/repository.js";
+import type { db as database } from "../prisma/db.js";
 
-import type { CreatePostDto } from '../dto/post.dto.js';
-import type { Post } from '../domain/post/entity.js';
-import type { Repository } from '../domain/post/repository.js';
-import type { db as database } from '../prisma/db.js';
-
-type Database = typeof database;
-
-export function creeatePostRepository(db: Database): Repository {
+export function creeatePostRepository(db: typeof database): Repository {
   return {
+  async getAll(category, take, categoryId): Promise<Post[]> {
+    let result = await db.orm.public.Post
+      .include("category")
+      .include("author", (user) => user.select("id", "email"))
+      .orderBy((post) => post.id.asc())
+      .all();
 
-    async getAll(category?: string, take?: number, categoryId?: number) : Promise<Post[]> {
-      let result = await db.orm.public.Post
-        .include("category")
-        .orderBy((post) => post.id.asc())
-        .all();
-
-      // Фільтр за назвою категорії
-      if (category) {
-        result = result.filter(
-          (post) => post.category.name === category
-        );
-      }
-
-      // Фільтр за ID категорії
-      if (categoryId !== undefined) {
-        result = result.filter(
-          (post) => post.categoryId === categoryId
-        );
-      }
-
-      // Обмеження кількості дописів
-      if (take !== undefined) {
-        result = result.slice(0, take);
-      }
-
-      return result;
-    },
-
-    async getById(id: number) : Promise<Post | null> {
-      const numericId = Number(id);
-
-      if (!Number.isInteger(numericId)) {
-        return null;
-      }
-
-      return await db.orm.public.Post
-        .where({ id: numericId })
-        .include("category")
-        .first();
-    },
-
-    async addPost({
-      title,
-      content,
-      author,
-      categoryId
-    }: CreatePostDto): Promise<Post>  {
-
-      // Створюємо допис і прив'язуємо категорію
-    const newPost = await db.orm.public.Post.create({
-      title,
-      content,
-      author,
-      category: (c) => c.connect({ id: categoryId })
-  });
-
-      // Отримуємо створений допис разом із категорією
-      const post = await db.orm.public.Post
-        .where({ id: newPost.id })
-        .include("category")
-        .first();
-
-      if (!post) {
-        throw new Error("Post not found after creation");
-      }
-
-      return post;
+    if (category) {
+      result = result.filter((post) => post.category.name === category);
     }
 
-  };
+    if (categoryId !== undefined) {
+      result = result.filter((post) => post.categoryId === categoryId);
+    }
+
+    if (take !== undefined) {
+      result = result.slice(0, take);
+    }
+
+    return result;
+  },
+
+  async getById(id): Promise<Post | null> {
+    if (!Number.isInteger(id)) return null;
+
+    return db.orm.public.Post
+      .where({ id })
+      .include("category")
+      .include("author", (user) => user.select("id", "email"))
+      .first();
+  },
+
+  async addPost({
+    title, content, authorId, categoryId,
+  }: CreatePostDto): Promise<Post> {
+    const created = await db.orm.public.Post.create({
+      title,
+      content,
+      author: (user) => user.connect({ id: authorId }),
+      category: (category) => category.connect({ id: categoryId }),
+    });
+
+    const post = await db.orm.public.Post
+      .where({ id: created.id })
+      .include("category")
+      .include("author", (user) => user.select("id", "email"))
+      .first();
+
+    if (!post) throw new Error("Post not found after creation");
+
+    return post;
+  },
+  getByEmail: function (email: string): unknown {
+    throw new Error("Function not implemented.");
+  },
+ 
+};
 }
