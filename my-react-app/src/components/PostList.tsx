@@ -1,5 +1,5 @@
 import type { Post } from "../data/posts.ts";
-import { PostCard } from "./PostCard.tsx";
+import { PostCard } from "./PostCard";
 
 interface PostListProps {
   posts: Post[];
