@@ -1,11 +1,8 @@
 export type { Post } from "../domain/post/entity.js";
 
-
-
 export interface CreatePostDto {
   title: string;
   content: string;
-  authorId: number;
   categoryId: number;
 }
 
