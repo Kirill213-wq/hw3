@@ -11,6 +11,13 @@ export function createAuthService(
   passwordHasher: PasswordHasher,
   tokenSigner: TokenSigner,
 ): UserService {
+  function createTokens(userId: number) {
+    return {
+      accessToken: tokenSigner.signAccessToken(userId),
+      refreshToken: tokenSigner.signRefreshToken(userId),
+    };
+  }
+
   return {
     async register({ email, password }) {
       email = email.trim().toLowerCase();
@@ -26,9 +33,7 @@ export function createAuthService(
     },
 
     async login({ email, password }) {
-      const user = await repository.getByEmail(
-        email.trim().toLowerCase(),
-      );
+      const user = await repository.getByEmail(email.trim().toLowerCase());
 
       if (
         !user ||
@@ -39,8 +44,34 @@ export function createAuthService(
 
       return {
         user: { id: user.id, email: user.email },
-        accessToken: tokenSigner.signAccessToken(user.id),
+        ...createTokens(user.id),
       };
+    },
+
+    async refresh(token) {
+      const userId = tokenSigner.verifyRefreshToken(token);
+
+      if (!userId) {
+        throw new AppError(401, "Invalid or expired refresh token");
+      }
+
+      const user = await repository.getById(userId);
+
+      if (!user) {
+        throw new AppError(401, "User not found");
+      }
+
+      return createTokens(user.id);
+    },
+
+    async me(userId) {
+      const user = await repository.getById(userId);
+
+      if (!user) {
+        throw new AppError(401, "User not found");
+      }
+
+      return { id: user.id, email: user.email };
     },
   };
 }
