@@ -8,6 +8,14 @@ export interface PasswordHasher {
 
 export interface TokenSigner {
   signAccessToken(userId: number): string;
+  signRefreshToken(userId: number): string;
+  verifyAccessToken(token: string): number | null;
+  verifyRefreshToken(token: string): number | null;
+}
+
+export interface AuthTokens {
+  accessToken: string;
+  refreshToken: string;
 }
 
 export interface UserService {
@@ -15,5 +23,8 @@ export interface UserService {
   login(data: UserDTO): Promise<{
     user: PublicUser;
     accessToken: string;
+    refreshToken: string;
   }>;
+  refresh(token: string): Promise<AuthTokens>;
+  me(userId: number): Promise<PublicUser>;
 }
