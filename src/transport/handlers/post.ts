@@ -36,12 +36,12 @@ async getPostById (req: Request, res: Response){
 
  async createPost(req: Request<{}, {}, CreatePostDto>, res: Response) {
   try {
-    const { title, content, authorId, categoryId } = req.body ?? {};
+    const { title, content, categoryId } = req.body ?? {};
+    const authorId = res.locals.userId;
 
     if (
       typeof title !== "string" || !title.trim() ||
       typeof content !== "string" || !content.trim() ||
-      !Number.isSafeInteger(authorId) || authorId <= 0 ||
       !Number.isSafeInteger(categoryId) || categoryId <= 0
     ) {
       return res.status(422).json({ error: "Invalid post data" });

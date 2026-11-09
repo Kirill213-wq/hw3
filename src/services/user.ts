@@ -40,7 +40,37 @@ export function createAuthService(
       return {
         user: { id: user.id, email: user.email },
         accessToken: tokenSigner.signAccessToken(user.id),
+        refreshToken: tokenSigner.signRefreshToken(user.id),
       };
+    },
+
+    async refresh(token) {
+      const userId = tokenSigner.verifyRefreshToken(token);
+
+      if (!userId) {
+        throw new AppError(401, "Invalid refresh token");
+      }
+
+      const user = await repository.getById(userId);
+
+      if (!user) {
+        throw new AppError(401, "User not found");
+      }
+
+      return {
+        accessToken: tokenSigner.signAccessToken(userId),
+        refreshToken: tokenSigner.signRefreshToken(userId),
+      };
+    },
+
+    async me(userId) {
+      const user = await repository.getById(userId);
+
+      if (!user) {
+        throw new AppError(404, "User not found");
+      }
+
+      return user;
     },
   };
 }
