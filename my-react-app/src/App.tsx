@@ -1,5 +1,7 @@
 import { Header } from "./components/Header.tsx";
 import { PostList } from "./components/PostList.tsx";
+import { RegisterForm } from "./components/RegisterForm.tsx";
+import { LoginForm } from "./components/LoginForm.tsx";
 import { useGetPostsQuery } from "./api/baseApi.ts";
 import "./App.css";
 
@@ -14,6 +16,11 @@ function App() {
       />
 
       <main className="container">
+        <div className="auth-section">
+          <RegisterForm />
+          <LoginForm />
+        </div>
+
         <h2 className="section-title">Останні публікації</h2>
 
         {isLoading ? (
