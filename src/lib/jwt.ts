@@ -1,3 +1,4 @@
+import { createHash, randomUUID } from "crypto";
 import jwt, { type JwtPayload } from "jsonwebtoken";
 import type { TokenSigner } from "../services/user.types.js";
 
@@ -8,6 +9,7 @@ export function createTokenSigner(secret: string): TokenSigner {
     return jwt.sign({ type }, secret, {
       subject: String(userId),
       expiresIn: type === "access" ? "15m" : "7d",
+      ...(type === "refresh" && { jwtid: randomUUID() }),
     });
   }
 
@@ -40,4 +42,8 @@ export function createTokenSigner(secret: string): TokenSigner {
     verifyAccessToken: (token) => verifyToken(token, "access"),
     verifyRefreshToken: (token) => verifyToken(token, "refresh"),
   };
+}
+
+export function hashRefreshToken(token: string): string {
+  return createHash("sha256").update(token).digest("hex");
 }

@@ -15,10 +15,13 @@ import { createCategoryRouter } from "./transport/routers/category.js";
 import { createUserRepository } from "./repositories/user.js";
 import { createAuthService } from "./services/user.js";
 import { hashPassword, verifyPassword } from "./lib/password.js";
-import { createTokenSigner } from "./lib/jwt.js";
+import { createTokenSigner, hashRefreshToken } from "./lib/jwt.js";
 import { createAuthHandlers } from "./transport/handlers/user.js";
 import { createAuthRouter } from "./transport/routers/auth.js";
 import { createRequireAuth } from "./transport/middleware/require-auth.js";
+
+
+import { createRefreshSessionRepository } from "./repositories/refresh-session.js";
 
 import { errorHandler } from "./transport/middleware/errors.js";
 import { db } from "./prisma/db.js";
@@ -40,11 +43,16 @@ const postService = createPostService(postRepository, categoryRepository);
 const postHandler = createPostHandlers(postService);
 
 const userRepository = createUserRepository(db);
+const refreshSessionRepository = createRefreshSessionRepository(db);
 const userService = createAuthService(
   userRepository,
   { hash: hashPassword, verify: verifyPassword },
   tokenSigner,
+  { hash: hashRefreshToken },
+  refreshSessionRepository,
 );
+
+
 
 const requireAuth = createRequireAuth(tokenSigner);
 

@@ -41,6 +41,24 @@ function setAuthCookies(
   });
 }
 
+function clearAuthCookies(res: Response) {
+  const secure = process.env.NODE_ENV === "production";
+
+  res.clearCookie("accessToken", {
+    httpOnly: true,
+    secure,
+    sameSite: "lax",
+    path: "/",
+  });
+
+  res.clearCookie("refreshToken", {
+    httpOnly: true,
+    secure,
+    sameSite: "lax",
+    path: "/",
+  });
+}
+
 export function createAuthHandlers(userService: UserService) {
   return {
     async register(req: Request, res: Response, next: NextFunction) {
@@ -81,6 +99,20 @@ export function createAuthHandlers(userService: UserService) {
         setAuthCookies(res, tokens.accessToken, tokens.refreshToken);
 
         res.json({ message: "Tokens refreshed" });
+      } catch (error) {
+        next(error);
+      }
+    },
+
+    async logout(req: Request, res: Response, next: NextFunction) {
+      try {
+        const token = req.cookies?.refreshToken;
+
+        await userService.logout(typeof token === "string" ? token : undefined);
+
+        clearAuthCookies(res);
+
+        res.json({ message: "Logged out" });
       } catch (error) {
         next(error);
       }

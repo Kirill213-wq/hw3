@@ -1,6 +1,8 @@
 import type { Repository } from "../domain/user/repository.js";
+import type { RefreshRepository } from "../domain/refresh-session/repository.js";
 import type {
   PasswordHasher,
+  RefreshTokenHasher,
   TokenSigner,
   UserService,
 } from "./user.types.js";
@@ -10,7 +12,11 @@ export function createAuthService(
   repository: Repository,
   passwordHasher: PasswordHasher,
   tokenSigner: TokenSigner,
+  tokens: RefreshTokenHasher,
+  sessions: RefreshRepository,
 ): UserService {
+  const REFRESH_TTL_MS = 7 * 24 * 60 * 60 * 1000;
+
   return {
     async register({ email, password }) {
       email = email.trim().toLowerCase();
@@ -37,10 +43,18 @@ export function createAuthService(
         throw new AppError(401, "Invalid email or password");
       }
 
+      const refreshToken = tokenSigner.signRefreshToken(user.id);
+
+      await sessions.create({
+        userId: user.id,
+        tokenHash: tokens.hash(refreshToken),
+        expiresAt: new Date(Date.now() + REFRESH_TTL_MS),
+      });
+
       return {
         user: { id: user.id, email: user.email },
         accessToken: tokenSigner.signAccessToken(user.id),
-        refreshToken: tokenSigner.signRefreshToken(user.id),
+        refreshToken,
       };
     },
 
@@ -51,16 +65,45 @@ export function createAuthService(
         throw new AppError(401, "Invalid refresh token");
       }
 
+      const oldHash = tokens.hash(token);
+      const session = await sessions.getByHash(oldHash);
+
+      if (
+        !session ||
+        session.userId !== userId ||
+        session.expiresAt <= new Date()
+      ) {
+        throw new AppError(401, "Invalid refresh token");
+      }
+
       const user = await repository.getById(userId);
 
       if (!user) {
         throw new AppError(401, "User not found");
       }
 
+      const newRefreshToken = tokenSigner.signRefreshToken(userId);
+
+      const rotated = await sessions.rotate(
+        oldHash,
+        tokens.hash(newRefreshToken),
+        new Date(Date.now() + REFRESH_TTL_MS),
+      );
+
+      if (!rotated) {
+        throw new AppError(401, "Invalid refresh token");
+      }
+
       return {
         accessToken: tokenSigner.signAccessToken(userId),
-        refreshToken: tokenSigner.signRefreshToken(userId),
+        refreshToken: newRefreshToken,
       };
+    },
+
+    async logout(token) {
+      if (!token) return;
+
+      await sessions.deleteByHash(tokens.hash(token));
     },
 
     async me(userId) {
