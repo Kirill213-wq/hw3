@@ -28,3 +28,15 @@ export interface UserService {
   refresh(token: string): Promise<AuthTokens>;
   me(userId: number): Promise<PublicUser>;
 }
+
+export interface RefreshTokenHasher {
+  hash(token: string): string;
+}
+
+export interface UserService {
+  register(data: UserDTO): Promise<PublicUser>;
+  login(data: UserDTO): Promise<{ user: PublicUser; accessToken: string; refreshToken: string }>;
+  refresh(token: string): Promise<AuthTokens>;
+  logout(token?: string): Promise<void>;
+  me(userId: number): Promise<PublicUser>;
+}
