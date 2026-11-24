@@ -136,3 +136,25 @@
     grid-template-columns: 1fr;
   }
 }
+
+
+/* Form validation */
+
+.form-error {
+  margin: 0;
+  color: #d32f2f;
+  font-size: 14px;
+}
+
+.form-success {
+  margin: 0;
+  color: #2e7d32;
+  font-size: 14px;
+}
+
+.user-info {
+  padding: 20px;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+}

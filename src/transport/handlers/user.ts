@@ -1,7 +1,7 @@
-import type { Request, Response, NextFunction } from "express";
-import type { UserService } from "../../services/user.types.js";
+import type { NextFunction, Request, Response } from "express";
 import type { UserDTO } from "../../dto/user.dto.js";
 import { AppError } from "../../errors/apierror.js";
+import type { UserService } from "../../services/user.types.js";
 
 function credentials(body: UserDTO): UserDTO {
   if (
@@ -74,11 +74,7 @@ export function createAuthHandlers(userService: UserService) {
       try {
         const result = await userService.login(credentials(req.body));
 
-        setAuthCookies(
-          res,
-          result.accessToken,
-          result.refreshToken,
-        );
+        setAuthCookies(res, result.accessToken, result.refreshToken);
 
         res.json(result.user);
       } catch (error) {
@@ -118,9 +114,15 @@ export function createAuthHandlers(userService: UserService) {
       }
     },
 
-    async me(req: Request, res: Response, next: NextFunction) {
+    async me(_req: Request, res: Response, next: NextFunction) {
       try {
-        const user = await userService.me(res.locals.userId);
+        const userId = res.locals.userId;
+
+        if (typeof userId !== "number") {
+          throw new AppError(401, "Unauthorized");
+        }
+
+        const user = await userService.me(userId);
         res.json(user);
       } catch (error) {
         next(error);

@@ -1,14 +1,10 @@
-import type { Request, Response, NextFunction } from "express";
-import type { Service } from "../../services/category.types.js";
+import type { NextFunction, Request, Response } from "express";
 import { AppError } from "../../errors/apierror.js";
+import type { Service } from "../../services/category.types.js";
 
 export function createCategoryHandlers(categoryService: Service) {
   return {
-    async getCategories(
-      req: Request,
-      res: Response,
-      next: NextFunction
-    ) {
+    async getCategories(_req: Request, res: Response, next: NextFunction) {
       try {
         const categories = await categoryService.getCategories();
         return res.status(200).json(categories);
@@ -17,16 +13,14 @@ export function createCategoryHandlers(categoryService: Service) {
       }
     },
 
-    async getCategoryById(
-      req: Request,
-      res: Response,
-      next: NextFunction
-    ) {
+    async getCategoryById(req: Request, res: Response, next: NextFunction) {
       try {
         const id = Number(req.params.id);
 
-        if (!/^[1-9]\d*$/.test(req.params.id ?? "") ||
-            !Number.isSafeInteger(id)) {
+        if (
+          !/^[1-9]\d*$/.test(req.params.id ?? "") ||
+          !Number.isSafeInteger(id)
+        ) {
           throw new AppError(400, "Invalid category id");
         }
 
@@ -42,11 +36,7 @@ export function createCategoryHandlers(categoryService: Service) {
       }
     },
 
-    async createCategory(
-      req: Request,
-      res: Response,
-      next: NextFunction
-    ) {
+    async createCategory(req: Request, res: Response, next: NextFunction) {
       try {
         const body = req.body;
 
@@ -54,7 +44,7 @@ export function createCategoryHandlers(categoryService: Service) {
           !body ||
           typeof body !== "object" ||
           Array.isArray(body) ||
-          Object.keys(body).some(key => key !== "name") ||
+          Object.keys(body).some((key) => key !== "name") ||
           typeof body.name !== "string" ||
           !body.name.trim()
         ) {
@@ -62,13 +52,13 @@ export function createCategoryHandlers(categoryService: Service) {
         }
 
         const category = await categoryService.createCategory({
-          name: body.name.trim()
+          name: body.name.trim(),
         });
 
         return res.status(201).json(category);
       } catch (error) {
         next(error);
       }
-    }
+    },
   };
 }

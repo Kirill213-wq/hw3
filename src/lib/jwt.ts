@@ -1,9 +1,11 @@
-import { createHash, randomUUID } from "crypto";
+import { createHash, randomUUID } from "node:crypto";
 import jwt, { type JwtPayload } from "jsonwebtoken";
 import type { TokenSigner } from "../services/user.types.js";
 
 export function createTokenSigner(secret: string): TokenSigner {
-  if (!secret) throw new Error("JWT_SECRET is required");
+  if (!secret) {
+    throw new Error("JWT_SECRET is required");
+  }
 
   function signToken(userId: number, type: "access" | "refresh") {
     return jwt.sign({ type }, secret, {
@@ -19,7 +21,6 @@ export function createTokenSigner(secret: string): TokenSigner {
   ): number | null {
     try {
       const payload = jwt.verify(token, secret) as JwtPayload;
-
       const userId = Number(payload.sub);
 
       if (
@@ -44,6 +45,12 @@ export function createTokenSigner(secret: string): TokenSigner {
   };
 }
 
-export function hashRefreshToken(token: string): string {
-  return createHash("sha256").update(token).digest("hex");
+export function createRefreshTokenHasher() {
+  return {
+    hash(token: string): string {
+      return createHash("sha256").update(token).digest("hex");
+    },
+  };
 }
+
+export type RefreshTokenHasher = ReturnType<typeof createRefreshTokenHasher>;

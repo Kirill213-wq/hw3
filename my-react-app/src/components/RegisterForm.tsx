@@ -1,3 +1,4 @@
+
 import { useForm } from "react-hook-form";
 import { useRegisterMutation } from "../api/baseApi.ts";
 
@@ -7,37 +8,80 @@ type RegisterValues = {
 };
 
 export function RegisterForm() {
-  const { register, handleSubmit, reset } = useForm<RegisterValues>();
+  const {
+    register,
+    handleSubmit,
+    reset,
+    setError,
+    formState: { errors },
+  } = useForm<RegisterValues>({
+    mode: "onChange",
+  });
+
   const [registerUser] = useRegisterMutation();
 
   async function onSubmit(data: RegisterValues) {
-    const result = await registerUser(data);
+    try {
+      const result = await registerUser(data).unwrap();
 
-    if (result.data) {
-      alert(`Користувач ${result.data.email} зареєструвався!`);
+      alert(`Користувач ${result.email} зареєструвався!`);
       reset();
-    } else {
-      const error = result.error as { data?: { error?: string } };
-      alert(`Помилка реєстрації: ${error?.data?.error ?? "щось пішло не так"}`);
+    } catch (error) {
+      const serverError = error as {
+        status?: number;
+        data?: { error?: string; message?: string };
+      };
+
+      if (serverError.status === 409) {
+        setError("email", {
+          type: "server",
+          message: "Ця електронна пошта вже зайнята",
+        });
+      } else {
+        setError("root", {
+          type: "server",
+          message:
+            serverError.data?.error ??
+            serverError.data?.message ??
+            "Не вдалося зареєструватися",
+        });
+      }
     }
   }
 
   return (
     <form className="auth-form" onSubmit={handleSubmit(onSubmit)}>
       <h3>Реєстрація</h3>
+
       <input
         type="email"
         placeholder="Електронна пошта"
-        required
-        {...register("email")}
+        {...register("email", {
+          required: "Введіть електронну пошту",
+          pattern: {
+            value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+            message: "Некоректна електронна пошта",
+          },
+        })}
       />
+      {errors.email && <p>{errors.email.message}</p>}
+
       <input
         type="password"
         placeholder="Пароль"
-        required
-        {...register("password")}
+        {...register("password", {
+          required: "Введіть пароль",
+          minLength: {
+            value: 6,
+            message: "Пароль повинен містити мінімум 6 символів",
+          },
+        })}
       />
-      <button>Зареєструватися</button>
+      {errors.password && <p>{errors.password.message}</p>}
+
+      {errors.root && <p>{errors.root.message}</p>}
+
+      <button type="submit">Зареєструватися</button>
     </form>
   );
 }

@@ -1,7 +1,9 @@
 import type { Repository } from "../domain/user/repository.js";
-import type { db as database } from "../prisma/db.js";
+import type { createDb } from "../prisma/db.js";
 
-export function createUserRepository(db: typeof database): Repository {
+type Database = ReturnType<typeof createDb>;
+
+export function createUserRepository(db: Database): Repository {
   return {
     async getByEmail(email) {
       return db.orm.public.User.where({ email }).first();

@@ -1,17 +1,15 @@
-import type { Request, Response, NextFunction } from "express";
+import type { NextFunction, Request, Response } from "express";
 import { AppError } from "../../errors/apierror.js";
-
-
 
 export function errorHandler(
   error: unknown,
-  req: Request,
+  _req: Request,
   res: Response,
-  next: NextFunction
+  _next: NextFunction,
 ) {
   if (error instanceof AppError) {
     return res.status(error.status).json({
-      error: error.message
+      error: error.message,
     });
   }
 
@@ -22,13 +20,13 @@ export function errorHandler(
 
   if (code === "23505" || code === "P2002") {
     return res.status(409).json({
-      error: "Category already exists"
+      error: "Category already exists",
     });
   }
 
   console.error(error);
 
   return res.status(500).json({
-    error: "Internal Server Error"
+    error: "Internal Server Error",
   });
 }
