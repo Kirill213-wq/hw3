@@ -1,20 +1,23 @@
-import type { Repository } from "../domain/user/repository.js";
 import type { RefreshRepository } from "../domain/refresh-session/repository.js";
+import type { Repository } from "../domain/user/repository.js";
+import { AppError } from "../errors/apierror.js";
 import type {
   PasswordHasher,
   RefreshTokenHasher,
   TokenSigner,
   UserService,
 } from "./user.types.js";
-import { AppError } from "../errors/apierror.js";
 
-export function createAuthService(
-  repository: Repository,
-  passwordHasher: PasswordHasher,
-  tokenSigner: TokenSigner,
-  tokens: RefreshTokenHasher,
-  sessions: RefreshRepository,
-): UserService {
+export interface AuthServiceDeps {
+  repository: Repository;
+  passwordHasher: PasswordHasher;
+  tokenSigner: TokenSigner;
+  tokens: RefreshTokenHasher;
+  sessions: RefreshRepository;
+}
+
+export function createAuthService(deps: AuthServiceDeps): UserService {
+  const { repository, passwordHasher, tokenSigner, tokens, sessions } = deps;
   const REFRESH_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 
   return {
@@ -32,14 +35,9 @@ export function createAuthService(
     },
 
     async login({ email, password }) {
-      const user = await repository.getByEmail(
-        email.trim().toLowerCase(),
-      );
+      const user = await repository.getByEmail(email.trim().toLowerCase());
 
-      if (
-        !user ||
-        !(await passwordHasher.verify(user.password, password))
-      ) {
+      if (!user || !(await passwordHasher.verify(user.password, password))) {
         throw new AppError(401, "Invalid email or password");
       }
 

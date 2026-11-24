@@ -1,4 +1,4 @@
-import type { Post, NewPost } from "../domain/post/entity.js";
+import type { NewPost, Post } from "../domain/post/entity.js";
 
 export interface Service {
   getPosts(category?: string, take?: number): Promise<Post[]>;

@@ -1,13 +1,12 @@
 export type { Category } from "../domain/category/entity.js";
 
-
 export interface CreateCategoryDto {
   name: string;
-}   
+}
 
 export interface CategoriesQueryDto {
   take?: string;
-  skip?: string;    
+  skip?: string;
 }
 
 export interface CategoryParamsDto {

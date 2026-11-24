@@ -1,6 +1,6 @@
+import type { RequestHandler } from "express";
 import { Router } from "express";
 import type { createAuthHandlers } from "../handlers/user.js";
-import type { RequestHandler } from "express";
 
 export function createAuthRouter(
   handlers: ReturnType<typeof createAuthHandlers>,

@@ -35,7 +35,9 @@ export interface RefreshTokenHasher {
 
 export interface UserService {
   register(data: UserDTO): Promise<PublicUser>;
-  login(data: UserDTO): Promise<{ user: PublicUser; accessToken: string; refreshToken: string }>;
+  login(
+    data: UserDTO,
+  ): Promise<{ user: PublicUser; accessToken: string; refreshToken: string }>;
   refresh(token: string): Promise<AuthTokens>;
   logout(token?: string): Promise<void>;
   me(userId: number): Promise<PublicUser>;

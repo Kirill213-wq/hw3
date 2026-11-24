@@ -5,6 +5,11 @@ interface PostCardProps {
 }
 
 export function PostCard({ post }: PostCardProps) {
+  const authorLabel =
+    typeof post.legacyAuthor === "string"
+      ? post.legacyAuthor
+      : post.legacyAuthor?.email ?? "Невідомий автор";
+
   return (
     <article className="post-card">
       <span className="category">{post.category.name}</span>
@@ -13,7 +18,7 @@ export function PostCard({ post }: PostCardProps) {
 
       <p className="post-content">{post.content}</p>
 
-      <p className="post-author">Автор: {post.legacyAuthor}</p>
+      <p className="post-author">Автор: {authorLabel}</p>
     </article>
   );
 }

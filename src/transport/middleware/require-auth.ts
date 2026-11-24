@@ -1,12 +1,8 @@
-import type { Request, Response, NextFunction } from "express";
+import type { NextFunction, Request, Response } from "express";
 import type { TokenSigner } from "../../services/user.types.js";
 
 export function createRequireAuth(tokenSigner: TokenSigner) {
-  return function requireAuth(
-    req: Request,
-    res: Response,
-    next: NextFunction,
-  ) {
+  return function requireAuth(req: Request, res: Response, next: NextFunction) {
     const token = req.cookies?.accessToken;
 
     if (!token) {

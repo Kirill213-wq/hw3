@@ -1,6 +1,8 @@
 import { Temporal } from "temporal-polyfill";
 import type { RefreshSessionRepository } from "../domain/refresh-session/repository.js";
-import type { db as database } from "../prisma/db.js";
+import type { createDb } from "../prisma/db.js";
+
+type Database = ReturnType<typeof createDb>;
 
 const toInstant = (date: Date) =>
   Temporal.Instant.fromEpochMilliseconds(date.getTime());
@@ -9,13 +11,13 @@ const toDate = (instant: { epochMilliseconds: number }) =>
   new Date(instant.epochMilliseconds);
 
 export function createRefreshSessionRepository(
-  db: typeof database,
+  db: Database,
 ): RefreshSessionRepository {
   return {
     async getByHash(hash) {
-      const session = await db.orm.public.RefreshSession
-        .where({ tokenHash: hash })
-        .first();
+      const session = await db.orm.public.RefreshSession.where({
+        tokenHash: hash,
+      }).first();
 
       if (!session) return null;
 
@@ -37,9 +39,9 @@ export function createRefreshSessionRepository(
     },
 
     async rotate(oldHash, newHash, expiresAt) {
-      const updated = await db.orm.public.RefreshSession
-        .where({ tokenHash: oldHash })
-        .update({ tokenHash: newHash, expiresAt: toInstant(expiresAt) });
+      const updated = await db.orm.public.RefreshSession.where({
+        tokenHash: oldHash,
+      }).update({ tokenHash: newHash, expiresAt: toInstant(expiresAt) });
 
       return updated !== null;
     },

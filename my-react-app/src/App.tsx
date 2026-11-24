@@ -1,12 +1,18 @@
+
 import { Header } from "./components/Header.tsx";
 import { PostList } from "./components/PostList.tsx";
 import { RegisterForm } from "./components/RegisterForm.tsx";
 import { LoginForm } from "./components/LoginForm.tsx";
-import { useGetPostsQuery } from "./api/baseApi.ts";
+import { useGetPostsQuery, useGetMeQuery } from "./api/baseApi.ts";
 import "./App.css";
 
 function App() {
   const { data: posts = [], isLoading, isError } = useGetPostsQuery();
+
+  const {
+    data: user,
+    isLoading: isAuthLoading,
+  } = useGetMeQuery();
 
   return (
     <>
@@ -17,8 +23,16 @@ function App() {
 
       <main className="container">
         <div className="auth-section">
-          <RegisterForm />
-          <LoginForm />
+          {isAuthLoading ? (
+            <p>Перевірка авторизації...</p>
+          ) : user ? (
+            <p>Ви авторизовані як: {user.email}</p>
+          ) : (
+            <>
+              <RegisterForm />
+              <LoginForm />
+            </>
+          )}
         </div>
 
         <h2 className="section-title">Останні публікації</h2>
